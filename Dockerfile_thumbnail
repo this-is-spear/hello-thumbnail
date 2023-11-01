@@ -1,0 +1,5 @@
+FROM openjdk:17-ea-oracle
+
+COPY thumbnail/build/libs/*.jar app.jar
+
+ENTRYPOINT java -jar app.jar

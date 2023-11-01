@@ -1,0 +1,27 @@
+
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - name : GlobalDefaultFilter
+          args:
+            pre-logger: true
+            post-logger: true
+      routes:
+        - id: thumbnail
+          uri: ${THUMBNAIL_URI:http://localhost:8080}
+          predicates:
+            - Path=/thumbnail/**
+          filters:
+            - name: ThumbnailFilter
+              args:
+                message : execute message
+            - RewritePath=/thumbnail/(?<path>.*),/$\{path}
+
+server:
+  port: 80
+
+logging:
+  level:
+    web: debug

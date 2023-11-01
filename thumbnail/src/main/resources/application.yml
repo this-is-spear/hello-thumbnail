@@ -1,0 +1,10 @@
+spring:
+  data:
+    mongodb:
+      username: ${MONGO_BASE_USER:tis}
+      password: ${MONGO_BASE_PASSWORD:tis}
+      uri: mongodb://${MONGO_BASE_HOST:mongodb}:${MONGO_BASE_PORT:27017}/${MONGO_BASE_DATABASE:thumbnail-local}
+
+logging:
+  level:
+    web: debug

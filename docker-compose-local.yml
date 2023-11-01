@@ -1,0 +1,53 @@
+
+version: "0.0.1"
+services:
+  thumbnail:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile_thumbnail
+    deploy:
+      replicas: 1
+    expose:
+      - 8080
+    volumes:
+      - .:/thumbnail
+    environment:
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+      TZ: "Asia/Seoul"
+      MONGO_BASE_DATABASE: thumbnail-local
+      MONGO_BASE_HOST: mongodb
+      MONGO_BASE_PORT: 27017
+      MONGO_BASE_USER: tis
+      MONGO_BASE_PASSWORD: tis
+    links:
+      - mongodb
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    expose:
+     - 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: tis
+      MONGO_INITDB_ROOT_PASSWORD: tis
+      MONGO_INITDB_DATABASE: thumbnail-local
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile_gateway
+    ports:
+      - 80:80
+    volumes:
+      - .:/gateway
+    environment:
+      THUMBNAIL_URI: http://thumbnail:8080/
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+      TZ: "Asia/Seoul"
+    links:
+      - thumbnail
+    depends_on:
+      - thumbnail

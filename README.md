@@ -8,7 +8,7 @@
 클론
 
 ```shell
-git clone git clone --recurse-submodules https://github.com/this-is-spear/hello-thumbnail
+git clone --recurse-submodules https://github.com/this-is-spear/hello-thumbnail
 ```
 
 루트 프로젝트 이동

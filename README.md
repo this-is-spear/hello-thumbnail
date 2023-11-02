@@ -5,17 +5,31 @@
 
 ```shell
 
-# 루트 프로젝트 이동
-cd /hello-thumbnail
+클론
 
-# 빌드 파일 생성
+```shell
+git clone git clone --recurse-submodules https://github.com/this-is-spear/pinpoint-docker
+```
+
+루트 프로젝트 이동
+
+```shell
+cd /hello-thumbnail
+```
+
+빌드 파일 생성
+
+```shell
 ./gradlew :thumbnail:clean :thumbnail:build
 ./gradlew :gateway:clean :gateway:build
-
-# 도커 실행
-docker compose -f docker-compose-local.yml -p hello-thumbnail up -d
-
 ```
+
+도커 실행
+
+```shell
+docker compose -f docker-compose-local.yml -p hello-thumbnail up -d
+```
+
 
 ## 제공하는 기능
 

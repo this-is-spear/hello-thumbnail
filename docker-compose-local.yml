@@ -13,13 +13,13 @@ services:
     volumes:
       - .:/thumbnail
     environment:
-      - JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${THUMBNAIL_AGENT_ID} -Dpinpoint.applicationName=${THUMBNAIL_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
-      - TZ: "Asia/Seoul"
-      - MONGO_BASE_DATABASE: thumbnail-local
-      - MONGO_BASE_HOST: mongodb
-      - MONGO_BASE_PORT: 27017
-      - MONGO_BASE_USER: tis
-      - MONGO_BASE_PASSWORD: tis
+      JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${THUMBNAIL_AGENT_ID} -Dpinpoint.applicationName=${THUMBNAIL_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
+      TZ: "Asia/Seoul"
+      MONGO_BASE_DATABASE: thumbnail-local
+      MONGO_BASE_HOST: mongodb
+      MONGO_BASE_PORT: 27017
+      MONGO_BASE_USER: tis
+      MONGO_BASE_PASSWORD: tis
     links:
       - mongodb
     depends_on:
@@ -34,9 +34,9 @@ services:
     expose:
      - 27017
     environment:
-      - MONGO_INITDB_ROOT_USERNAME: tis
-      - MONGO_INITDB_ROOT_PASSWORD: tis
-      - MONGO_INITDB_DATABASE: thumbnail-local
+      MONGO_INITDB_ROOT_USERNAME: tis
+      MONGO_INITDB_ROOT_PASSWORD: tis
+      MONGO_INITDB_DATABASE: thumbnail-local
     networks:
       - pinpoint
 
@@ -49,9 +49,9 @@ services:
     volumes:
       - .:/gateway
     environment:
-      - JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${GATEWAY_AGENT_ID} -Dpinpoint.applicationName=${GATEWAY_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
-      - THUMBNAIL_URI: http://thumbnail:8090/
-      - TZ: "Asia/Seoul"
+      JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${GATEWAY_AGENT_ID} -Dpinpoint.applicationName=${GATEWAY_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
+      THUMBNAIL_URI: http://thumbnail:8090/
+      TZ: "Asia/Seoul"
     links:
       - thumbnail
     depends_on:

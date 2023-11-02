@@ -10,7 +10,7 @@ spring:
             post-logger: true
       routes:
         - id: thumbnail
-          uri: ${THUMBNAIL_URI:http://localhost:8080}
+          uri: ${THUMBNAIL_URI:http://localhost:8090}
           predicates:
             - Path=/thumbnail/**
           filters:

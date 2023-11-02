@@ -1,5 +1,5 @@
 FROM openjdk:17-ea-oracle
 
-COPY gateway/build/libs/*.jar app.jar
+COPY ./build/libs/*.jar app.jar
 
 ENTRYPOINT java -jar app.jar

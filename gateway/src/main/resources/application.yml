@@ -10,7 +10,7 @@ spring:
             post-logger: true
       routes:
         - id: thumbnail
-          uri: ${THUMBNAIL_URI:http://localhost:8090}
+          uri: ${THUMBNAIL_URI:http://localhost}:${THUMBNAIL_APP_PORT:8090}
           predicates:
             - Path=/thumbnail/**
           filters:
@@ -20,7 +20,7 @@ spring:
             - RewritePath=/thumbnail/(?<path>.*),/$\{path}
 
 server:
-  port: 80
+  port: ${GATEWAY_APP_PORT:9000}
 
 logging:
   level:

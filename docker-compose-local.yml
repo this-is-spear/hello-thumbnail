@@ -8,20 +8,19 @@ services:
       dockerfile: Dockerfile
     deploy:
       replicas: 1
-    expose:
-      - 8090
+    ports:
+      - "${THUMBNAIL_APP_PORT:-8090}:8090"
     volumes:
       - .:/thumbnail
     environment:
       JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${THUMBNAIL_AGENT_ID} -Dpinpoint.applicationName=${THUMBNAIL_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
       TZ: "Asia/Seoul"
+      THUMBNAIL_APP_PORT: 8090
       MONGO_BASE_DATABASE: thumbnail-local
       MONGO_BASE_HOST: mongodb
       MONGO_BASE_PORT: 27017
       MONGO_BASE_USER: tis
       MONGO_BASE_PASSWORD: tis
-    links:
-      - mongodb
     depends_on:
       - mongodb
       - pinpoint-agent
@@ -45,15 +44,15 @@ services:
       context: ./gateway
       dockerfile: Dockerfile
     ports:
-      - "9000:9000"
+      - "${GATEWAY_APP_PORT:-9000}:9000"
     volumes:
       - .:/gateway
     environment:
       JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${GATEWAY_AGENT_ID} -Dpinpoint.applicationName=${GATEWAY_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
-      THUMBNAIL_URI: http://thumbnail:8090/
+      GATEWAY_APP_PORT: 9000
+      THUMBNAIL_APP_PORT: 8090
+      THUMBNAIL_URI: http://thumbnail
       TZ: "Asia/Seoul"
-    links:
-      - thumbnail
     depends_on:
       - thumbnail
       - pinpoint-agent

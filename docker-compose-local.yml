@@ -1,29 +1,29 @@
-
 version: "0.0.1"
+
 services:
   thumbnail:
     restart: always
     build:
-      context: .
-      dockerfile: Dockerfile_thumbnail
+      context: ./thumbnail
+      dockerfile: Dockerfile
     deploy:
       replicas: 1
-    expose:
-      - 8080
+    ports:
+      - "${THUMBNAIL_APP_PORT:-8090}:8090"
     volumes:
-      - .:/thumbnail
+      - data-volume:/pinpoint-agent
     environment:
-      JAVA_OPTS: "-Xms256m -Xmx512m"
       TZ: "Asia/Seoul"
-      MONGO_BASE_DATABASE: thumbnail-local
+      THUMBNAIL_APP_PORT: 8090
       MONGO_BASE_HOST: mongodb
       MONGO_BASE_PORT: 27017
       MONGO_BASE_USER: tis
       MONGO_BASE_PASSWORD: tis
-    links:
-      - mongodb
     depends_on:
       - mongodb
+      - pinpoint-agent
+    networks:
+      - pinpoint
 
   mongodb:
     image: mongo
@@ -34,20 +34,292 @@ services:
       MONGO_INITDB_ROOT_USERNAME: tis
       MONGO_INITDB_ROOT_PASSWORD: tis
       MONGO_INITDB_DATABASE: thumbnail-local
+    networks:
+      - pinpoint
 
   gateway:
     build:
-      context: .
-      dockerfile: Dockerfile_gateway
+      context: ./gateway
+      dockerfile: Dockerfile
     ports:
-      - 80:80
+      - "${GATEWAY_APP_PORT:-9000}:9000"
     volumes:
-      - .:/gateway
+      - data-volume:/pinpoint-agent
     environment:
-      THUMBNAIL_URI: http://thumbnail:8080/
-      JAVA_OPTS: "-Xms256m -Xmx512m"
+      GATEWAY_APP_PORT: 9000
+      THUMBNAIL_APP_PORT: 8090
+      THUMBNAIL_URI: http://thumbnail
       TZ: "Asia/Seoul"
-    links:
-      - thumbnail
     depends_on:
       - thumbnail
+      - pinpoint-agent
+    networks:
+      - pinpoint
+
+  pinpoint-hbase:
+    build:
+      context: ./pinpoint/pinpoint-hbase/
+      dockerfile: Dockerfile
+      args:
+        - PINPOINT_VERSION=${PINPOINT_VERSION}
+
+    container_name: "${PINPOINT_HBASE_NAME}"
+    image: "pinpointdocker/pinpoint-hbase:${PINPOINT_VERSION}"
+    networks:
+      - pinpoint
+    environment:
+      - AGENTINFO_TTL=${AGENTINFO_TTL}
+      - AGENTSTATV2_TTL=${AGENTSTATV2_TTL}
+      - APPSTATAGGRE_TTL=${APPSTATAGGRE_TTL}
+      - APPINDEX_TTL=${APPINDEX_TTL}
+      - AGENTLIFECYCLE_TTL=${AGENTLIFECYCLE_TTL}
+      - AGENTEVENT_TTL=${AGENTEVENT_TTL}
+      - STRINGMETADATA_TTL=${STRINGMETADATA_TTL}
+      - APIMETADATA_TTL=${APIMETADATA_TTL}
+      - SQLMETADATA_TTL=${SQLMETADATA_TTL}
+      - TRACEV2_TTL=${TRACEV2_TTL}
+      - APPTRACEINDEX_TTL=${APPTRACEINDEX_TTL}
+      - APPMAPSTATCALLERV2_TTL=${APPMAPSTATCALLERV2_TTL}
+      - APPMAPSTATCALLEV2_TTL=${APPMAPSTATCALLEV2_TTL}
+      - APPMAPSTATSELFV2_TTL=${APPMAPSTATSELFV2_TTL}
+      - HOSTAPPMAPV2_TTL=${HOSTAPPMAPV2_TTL}
+    volumes:
+      - hbase_data:/home/pinpoint/hbase
+      - /home/pinpoint/zookeeper
+    expose:
+      # HBase Master API port
+      - "60000"
+      # HBase Master Web UI
+      - "16010"
+      # Regionserver API port
+      - "60020"
+      # HBase Regionserver web UI
+      - "16030"
+    ports:
+      - "60000:60000"
+      - "16010:16010"
+      - "60020:60020"
+      - "16030:16030"
+    restart: always
+    depends_on:
+      - zoo1
+
+  pinpoint-web:
+    build:
+      context: ./pinpoint/pinpoint-web/
+      dockerfile: Dockerfile
+      args:
+        - PINPOINT_VERSION=${PINPOINT_VERSION}
+
+    container_name: "${PINPOINT_WEB_NAME}"
+    image: "pinpointdocker/pinpoint-web:${PINPOINT_VERSION}"
+
+    depends_on:
+      - pinpoint-hbase
+      - mongodb
+      - zoo1
+    restart: always
+    expose:
+      - "9997"
+    ports:
+      - "9997:9997"
+      - "${WEB_SERVER_PORT:-8080}:8080"
+    environment:
+      - WEB_SERVER_PORT=${WEB_SERVER_PORT}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES}
+      - PINPOINT_ZOOKEEPER_ADDRESS=${PINPOINT_ZOOKEEPER_ADDRESS}
+      - CLUSTER_ENABLE=${CLUSTER_ENABLE}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - CONFIG_SENDUSAGE=${CONFIG_SENDUSAGE}
+      - LOGGING_LEVEL_ROOT=${WEB_LOGGING_LEVEL_ROOT}
+      - CONFIG_SHOW_APPLICATIONSTAT=${CONFIG_SHOW_APPLICATIONSTAT}
+      - JDBC_DRIVERCLASSNAME=${JDBC_DRIVERCLASSNAME}
+      - JDBC_URL=${JDBC_URL}
+      - JDBC_USERNAME=${JDBC_USERNAME}
+      - JDBC_PASSWORD=${JDBC_PASSWORD}
+    networks:
+      - pinpoint
+
+  pinpoint-collector:
+    build:
+      context: ./pinpoint/pinpoint-collector/
+      dockerfile: Dockerfile
+      args:
+        - PINPOINT_VERSION=${PINPOINT_VERSION}
+
+    container_name: "${PINPOINT_COLLECTOR_NAME}"
+    image: "pinpointdocker/pinpoint-collector:${PINPOINT_VERSION}"
+
+    depends_on:
+      - pinpoint-hbase
+      - zoo1
+    restart: always
+    expose:
+      - "9991"
+      - "9992"
+      - "9993"
+      - "9994"
+      - "9995"
+      - "9996"
+    ports:
+      - "${COLLECTOR_RECEIVER_GRPC_AGENT_PORT:-9991}:9991/tcp"
+      - "${COLLECTOR_RECEIVER_GRPC_STAT_PORT:-9992}:9992/tcp"
+      - "${COLLECTOR_RECEIVER_GRPC_SPAN_PORT:-9993}:9993/tcp"
+      - "${COLLECTOR_RECEIVER_BASE_PORT:-9994}:9994"
+      - "${COLLECTOR_RECEIVER_STAT_UDP_PORT:-9995}:9995/tcp"
+      - "${COLLECTOR_RECEIVER_SPAN_UDP_PORT:-9996}:9996/tcp"
+      - "${COLLECTOR_RECEIVER_STAT_UDP_PORT:-9995}:9995/udp"
+      - "${COLLECTOR_RECEIVER_SPAN_UDP_PORT:-9996}:9996/udp"
+    networks:
+      pinpoint:
+        ipv4_address: ${COLLECTOR_FIXED_IP}
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES}
+      - PINPOINT_ZOOKEEPER_ADDRESS=${PINPOINT_ZOOKEEPER_ADDRESS}
+      - CLUSTER_ENABLE=${CLUSTER_ENABLE}
+      - LOGGING_LEVEL_ROOT=${COLLECTOR_LOGGING_LEVEL_ROOT}
+      - FLINK_CLUSTER_ENABLE=${FLINK_CLUSTER_ENABLE}
+      - FLINK_CLUSTER_ZOOKEEPER_ADDRESS=${FLINK_CLUSTER_ZOOKEEPER_ADDRESS}
+
+  pinpoint-agent:
+    build:
+      context: ./pinpoint/pinpoint-agent/
+      dockerfile: Dockerfile
+      args:
+        - PINPOINT_VERSION=${PINPOINT_VERSION}
+
+    container_name: "${PINPOINT_AGENT_NAME}"
+    image: "pinpointdocker/pinpoint-agent:${PINPOINT_VERSION}"
+    restart: unless-stopped
+    networks:
+      - pinpoint
+    volumes:
+      - data-volume:/pinpoint-agent
+    environment:
+      - SPRING_PROFILES=${SPRING_PROFILES}
+      - COLLECTOR_IP=${COLLECTOR_IP}
+      - PROFILER_TRANSPORT_AGENT_COLLECTOR_PORT=${PROFILER_TRANSPORT_AGENT_COLLECTOR_PORT}
+      - PROFILER_TRANSPORT_METADATA_COLLECTOR_PORT=${PROFILER_TRANSPORT_METADATA_COLLECTOR_PORT}
+      - PROFILER_TRANSPORT_STAT_COLLECTOR_PORT=${PROFILER_TRANSPORT_STAT_COLLECTOR_PORT}
+      - PROFILER_TRANSPORT_SPAN_COLLECTOR_PORT=${PROFILER_TRANSPORT_SPAN_COLLECTOR_PORT}
+      - PROFILER_SAMPLING_TYPE=${PROFILER_SAMPLING_TYPE}
+      - PROFILER_SAMPLING_COUNTING_SAMPLING_RATE=${PROFILER_SAMPLING_COUNTING_SAMPLING_RATE}
+      - PROFILER_SAMPLING_PERCENT_SAMPLING_RATE=${PROFILER_SAMPLING_PERCENT_SAMPLING_RATE}
+      - PROFILER_SAMPLING_NEW_THROUGHPUT=${PROFILER_SAMPLING_NEW_THROUGHPUT}
+      - PROFILER_SAMPLING_CONTINUE_THROUGHPUT=${PROFILER_SAMPLING_CONTINUE_THROUGHPUT}
+      - DEBUG_LEVEL=${AGENT_DEBUG_LEVEL}
+      - PROFILER_TRANSPORT_MODULE=${PROFILER_TRANSPORT_MODULE}
+    depends_on:
+      - pinpoint-collector
+
+  #zookeepers
+  zoo1:
+    image: zookeeper:3.4.13
+    restart: always
+    hostname: zoo1
+    expose:
+      - "2181"
+      - "2888"
+      - "3888"
+    ports:
+      - "2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+    networks:
+      - pinpoint
+
+  zoo2:
+    image: zookeeper:3.4.13
+    restart: always
+    hostname: zoo2
+    expose:
+      - "2181"
+      - "2888"
+      - "3888"
+    ports:
+      - "2181"
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
+    networks:
+      - pinpoint
+
+  zoo3:
+    image: zookeeper:3.4.13
+    restart: always
+    hostname: zoo3
+    expose:
+      - "2181"
+      - "2888"
+      - "3888"
+    ports:
+      - "2181"
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
+    networks:
+      - pinpoint
+
+  ##flink
+  jobmanager:
+    build:
+      context: ./pinpoint/pinpoint-flink
+      dockerfile: Dockerfile
+      args:
+        - PINPOINT_VERSION=${PINPOINT_VERSION}
+
+    container_name: "${PINPOINT_FLINK_NAME}-jobmanager"
+    image: "pinpointdocker/pinpoint-flink:${PINPOINT_VERSION}"
+    expose:
+      - "6123"
+    ports:
+      - "${FLINK_WEB_PORT:-8081}:8081"
+    command: standalone-job -p 1 pinpoint-flink-job.jar -spring.profiles.active release
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - PINPOINT_ZOOKEEPER_ADDRESS=${PINPOINT_ZOOKEEPER_ADDRESS}
+    networks:
+      - pinpoint
+    depends_on:
+      - zoo1
+
+  taskmanager:
+    build:
+      context: ./pinpoint/pinpoint-flink
+      dockerfile: Dockerfile
+      args:
+        - PINPOINT_VERSION=${PINPOINT_VERSION}
+
+    container_name: "${PINPOINT_FLINK_NAME}-taskmanager"
+    image: "pinpointdocker/pinpoint-flink:${PINPOINT_VERSION}"
+    expose:
+      - "6121"
+      - "6122"
+      - "19994"
+    ports:
+      - "6121:6121"
+      - "6122:6122"
+      - "19994:19994"
+    depends_on:
+      - zoo1
+      - jobmanager
+    command: taskmanager
+    links:
+      - "jobmanager:jobmanager"
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+    networks:
+      - pinpoint
+
+volumes:
+  data-volume:
+  hbase_data:
+  mongo:
+
+networks:
+  pinpoint:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${PINPOINT_NETWORK_SUBNET}

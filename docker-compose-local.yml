@@ -36,6 +36,7 @@ services:
       MONGO_INITDB_DATABASE: thumbnail-local
     networks:
       - pinpoint
+
   gateway:
     build:
       context: ./gateway

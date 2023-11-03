@@ -1,3 +1,4 @@
+#!/bin/bash
 
 ./gradlew :thumbnail:clean :thumbnail:build
 ./gradlew :gateway:clean :gateway:build

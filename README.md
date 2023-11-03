@@ -14,7 +14,7 @@ git clone --recurse-submodules https://github.com/this-is-spear/hello-thumbnail
 실행
 
 ```shell
-cd /hello-thumbnail & chmod +x ./run.sh & ./run.sh
+chmod +x ./run.sh & ./run.sh
 ```
 
 pinpoint web 접속
@@ -52,7 +52,9 @@ k6 설치
 brew install k6
 ```
 
-
+```shell
+chmod +x ./test.sh & ./test.sh
+```
 
 ## 제공하는 기능
 

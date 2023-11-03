@@ -5,16 +5,55 @@
 
 ```shell
 
-# 루트 프로젝트 이동
-cd /hello-thumbnail
+클론
 
-# 빌드 파일 생성
-./gradlew :thumbnail:clean :thumbnail:build
-./gradlew :gateway:clean :gateway:build
+```shell
+git clone --recurse-submodules https://github.com/this-is-spear/hello-thumbnail
+```
 
-# 도커 실행
-docker compose -f docker-compose-local.yml -p hello-thumbnail up -d
+실행
 
+```shell
+./run.sh
+```
+
+pinpoint web 접속
+
+```http request
+GET http://localhost:8080
+```
+
+> pinpoint는 실행하고 최소 30초 동안 초기화하는 시간이 존재합니다.
+
+## 테스트 방법
+
+http request 요청으로 pinpoint 동작 확인
+
+테스트 
+
+```shell
+curl -X GET http://localhost:9000/thumbnail/hello
+```
+
+```shell
+curl -X GET http://localhost:9000/thumbnail/slow-hello
+```
+
+```shell
+curl -X GET http://localhost:9000/thumbnail/no
+```
+
+> 게이트웨이를 통해 동작하게 됩니다.
+
+
+k6를 설치하면 원활하게 테스트 결과를 확인 할 수 있습니다.
+
+```shell
+brew install k6
+```
+
+```shell
+./test.sh
 ```
 
 ## 제공하는 기능

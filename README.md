@@ -20,7 +20,7 @@ chmod +x ./run.sh & ./run.sh
 pinpoint web 접속
 
 ```http request
-curl -X GET http://localhost:8080
+GET http://localhost:8080
 ```
 
 > pinpoint는 실행하고 최소 30초 동안 초기화하는 시간이 존재합니다.
@@ -46,7 +46,7 @@ curl -X GET http://localhost:9000/thumbnail/no
 > 게이트웨이를 통해 동작하게 됩니다.
 
 
-k6 설치
+k6를 설치하면 원활하게 테스트 결과를 확인 할 수 있습니다.
 
 ```shell
 brew install k6

@@ -10,4 +10,4 @@ server:
 
 logging:
   level:
-    web: debug
+    root: info

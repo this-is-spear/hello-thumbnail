@@ -11,9 +11,8 @@ services:
     ports:
       - "${THUMBNAIL_APP_PORT:-8090}:8090"
     volumes:
-      - .:/thumbnail
+      - data-volume:/pinpoint-agent
     environment:
-      JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${THUMBNAIL_AGENT_ID} -Dpinpoint.applicationName=${THUMBNAIL_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
       TZ: "Asia/Seoul"
       THUMBNAIL_APP_PORT: 8090
       MONGO_BASE_DATABASE: thumbnail-local
@@ -46,9 +45,8 @@ services:
     ports:
       - "${GATEWAY_APP_PORT:-9000}:9000"
     volumes:
-      - .:/gateway
+      - data-volume:/pinpoint-agent
     environment:
-      JAVA_OPTS: "-javaagent:/pinpoint-agent/pinpoint-bootstrap-${PINPOINT_VERSION}.jar -Dpinpoint.agentId=${GATEWAY_AGENT_ID} -Dpinpoint.applicationName=${GATEWAY_APP_NAME} -Dpinpoint.profiler.profiles.active=${SPRING_PROFILES}"
       GATEWAY_APP_PORT: 9000
       THUMBNAIL_APP_PORT: 8090
       THUMBNAIL_URI: http://thumbnail

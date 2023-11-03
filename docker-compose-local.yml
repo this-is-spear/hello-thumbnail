@@ -104,30 +104,6 @@ services:
     depends_on:
       - zoo1
 
-  pinpoint-mysql:
-    build:
-      context: ./pinpoint/pinpoint-mysql/
-      dockerfile: Dockerfile
-      args:
-        - PINPOINT_VERSION=${PINPOINT_VERSION}
-
-    container_name: pinpoint-mysql
-    restart: always
-    image: "pinpointdocker/pinpoint-mysql:${PINPOINT_VERSION}"
-    hostname: pinpoint-mysql
-    ports:
-      - "3306:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - pinpoint
-
   pinpoint-web:
     build:
       context: ./pinpoint/pinpoint-web/
@@ -140,7 +116,7 @@ services:
 
     depends_on:
       - pinpoint-hbase
-      - pinpoint-mysql
+      - mongodb
       - zoo1
     restart: always
     expose:
@@ -161,8 +137,6 @@ services:
       - JDBC_URL=${JDBC_URL}
       - JDBC_USERNAME=${JDBC_USERNAME}
       - JDBC_PASSWORD=${JDBC_PASSWORD}
-    links:
-      - "pinpoint-mysql:pinpoint-mysql"
     networks:
       - pinpoint
 
@@ -340,7 +314,6 @@ services:
 
 volumes:
   data-volume:
-  mysql_data:
   hbase_data:
   mongo:
 

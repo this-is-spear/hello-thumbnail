@@ -3,10 +3,11 @@ spring:
     mongodb:
       username: ${MONGO_BASE_USER:tis}
       password: ${MONGO_BASE_PASSWORD:tis}
-      uri: mongodb://${MONGO_BASE_HOST:mongodb}:${MONGO_BASE_PORT:27017}/${MONGO_BASE_DATABASE:thumbnail-local}
-
+      authentication-database: admin
+      host: ${MONGO_BASE_HOST:localhost}
+      port: ${MONGO_BASE_PORT:27017}
 server:
-  port: ${THUMBNAIL_APP_PORT:8090}
+  port: ${THUMBNAIL_APP_PORT:8095}
 
 logging:
   level:

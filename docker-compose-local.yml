@@ -15,7 +15,6 @@ services:
     environment:
       TZ: "Asia/Seoul"
       THUMBNAIL_APP_PORT: 8090
-      MONGO_BASE_DATABASE: thumbnail-local
       MONGO_BASE_HOST: mongodb
       MONGO_BASE_PORT: 27017
       MONGO_BASE_USER: tis
@@ -37,7 +36,6 @@ services:
       MONGO_INITDB_DATABASE: thumbnail-local
     networks:
       - pinpoint
-
   gateway:
     build:
       context: ./gateway
@@ -343,6 +341,7 @@ volumes:
   data-volume:
   mysql_data:
   hbase_data:
+  mongo:
 
 networks:
   pinpoint:

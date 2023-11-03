@@ -11,24 +11,47 @@
 git clone --recurse-submodules https://github.com/this-is-spear/hello-thumbnail
 ```
 
-루트 프로젝트 이동
+실행
 
 ```shell
-cd /hello-thumbnail
+cd /hello-thumbnail & chmod +x ./run.sh & ./run.sh
 ```
 
-빌드 파일 생성
+pinpoint web 접속
+
+```http request
+curl -X GET http://localhost:8080
+```
+
+> pinpoint는 실행하고 최소 30초 동안 초기화하는 시간이 존재합니다.
+
+## 테스트 방법
+
+http request 요청으로 pinpoint 동작 확인
+
+테스트 
 
 ```shell
-./gradlew :thumbnail:clean :thumbnail:build
-./gradlew :gateway:clean :gateway:build
+curl -X GET http://localhost:9000/thumbnail/hello
 ```
-
-도커 실행
 
 ```shell
-docker compose -f docker-compose-local.yml -p hello-thumbnail up -d
+curl -X GET http://localhost:9000/thumbnail/slow-hello
 ```
+
+```shell
+curl -X GET http://localhost:9000/thumbnail/no
+```
+
+> 게이트웨이를 통해 동작하게 됩니다.
+
+
+k6 설치
+
+```shell
+brew install k6
+```
+
 
 
 ## 제공하는 기능

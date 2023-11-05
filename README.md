@@ -6,7 +6,7 @@
 클론
 
 ```shell
-git clone -b pinpoint --recurse-submodules https://github.com/this-is-spear/hello-thumbnail
+git clone --single-branch -b pinpoit --recurse-submodules https://github.com/this-is-spear/hello-thumbnail
 ```
 
 실행

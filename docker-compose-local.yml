@@ -8,8 +8,8 @@ services:
       dockerfile: Dockerfile
     deploy:
       replicas: 1
-    ports:
-      - "${THUMBNAIL_APP_PORT:-8090}:8090"
+    expose:
+      - 8090
     volumes:
       - data-volume:/pinpoint-agent
     environment:
@@ -19,23 +19,24 @@ services:
       MONGO_BASE_PORT: 27017
       MONGO_BASE_USER: tis
       MONGO_BASE_PASSWORD: tis
+      ZIPKIN_URI: http://zipkin
     depends_on:
       - mongodb
       - pinpoint-agent
     networks:
-      - pinpoint
+      - thumbnail_net
 
   mongodb:
     image: mongo
     restart: unless-stopped
-    expose:
-     - 27017
+    ports:
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: tis
       MONGO_INITDB_ROOT_PASSWORD: tis
       MONGO_INITDB_DATABASE: thumbnail-local
     networks:
-      - pinpoint
+      - thumbnail_net
 
   gateway:
     build:
@@ -49,12 +50,13 @@ services:
       GATEWAY_APP_PORT: 9000
       THUMBNAIL_APP_PORT: 8090
       THUMBNAIL_URI: http://thumbnail
+      ZIPKIN_URI: http://zipkin
       TZ: "Asia/Seoul"
     depends_on:
       - thumbnail
       - pinpoint-agent
     networks:
-      - pinpoint
+      - thumbnail_net
 
   pinpoint-hbase:
     build:
@@ -66,7 +68,7 @@ services:
     container_name: "${PINPOINT_HBASE_NAME}"
     image: "pinpointdocker/pinpoint-hbase:${PINPOINT_VERSION}"
     networks:
-      - pinpoint
+      - thumbnail_net
     environment:
       - AGENTINFO_TTL=${AGENTINFO_TTL}
       - AGENTSTATV2_TTL=${AGENTSTATV2_TTL}
@@ -138,7 +140,7 @@ services:
       - JDBC_USERNAME=${JDBC_USERNAME}
       - JDBC_PASSWORD=${JDBC_PASSWORD}
     networks:
-      - pinpoint
+      - thumbnail_net
 
   pinpoint-collector:
     build:
@@ -171,7 +173,7 @@ services:
       - "${COLLECTOR_RECEIVER_STAT_UDP_PORT:-9995}:9995/udp"
       - "${COLLECTOR_RECEIVER_SPAN_UDP_PORT:-9996}:9996/udp"
     networks:
-      pinpoint:
+      thumbnail_net:
         ipv4_address: ${COLLECTOR_FIXED_IP}
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES}
@@ -192,7 +194,7 @@ services:
     image: "pinpointdocker/pinpoint-agent:${PINPOINT_VERSION}"
     restart: unless-stopped
     networks:
-      - pinpoint
+      - thumbnail_net
     volumes:
       - data-volume:/pinpoint-agent
     environment:
@@ -227,7 +229,7 @@ services:
       ZOO_MY_ID: 1
       ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
     networks:
-      - pinpoint
+      - thumbnail_net
 
   zoo2:
     image: zookeeper:3.4.13
@@ -243,7 +245,7 @@ services:
       ZOO_MY_ID: 2
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
     networks:
-      - pinpoint
+      - thumbnail_net
 
   zoo3:
     image: zookeeper:3.4.13
@@ -259,7 +261,7 @@ services:
       ZOO_MY_ID: 3
       ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
     networks:
-      - pinpoint
+      - thumbnail_net
 
   ##flink
   jobmanager:
@@ -280,7 +282,7 @@ services:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
       - PINPOINT_ZOOKEEPER_ADDRESS=${PINPOINT_ZOOKEEPER_ADDRESS}
     networks:
-      - pinpoint
+      - thumbnail_net
     depends_on:
       - zoo1
 
@@ -310,7 +312,15 @@ services:
     environment:
       - JOB_MANAGER_RPC_ADDRESS=jobmanager
     networks:
-      - pinpoint
+      - thumbnail_net
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - thumbnail_net
 
 volumes:
   data-volume:
@@ -318,7 +328,7 @@ volumes:
   mongo:
 
 networks:
-  pinpoint:
+  thumbnail_net:
     driver: bridge
     ipam:
       config:

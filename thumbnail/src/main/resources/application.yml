@@ -6,9 +6,24 @@ spring:
       authentication-database: admin
       host: ${MONGO_BASE_HOST:localhost}
       port: ${MONGO_BASE_PORT:27017}
+  application:
+    name: thumbnail
+
 server:
   port: ${THUMBNAIL_APP_PORT:8095}
+
+
 
 logging:
   level:
     root: info
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_URI:http://localhost}:9411/api/v2/spans

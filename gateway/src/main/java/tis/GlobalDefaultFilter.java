@@ -1,5 +1,6 @@
 package tis;
 
+import brave.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -12,10 +13,13 @@ import reactor.core.publisher.Mono;
 @Component
 public class GlobalDefaultFilter extends AbstractGatewayFilterFactory<GlobalDefaultFilter.Config> {
 
+    private final Tracer tracer;
+
     private final Logger log = LoggerFactory.getLogger(GlobalDefaultFilter.class);
 
-    public GlobalDefaultFilter() {
+    public GlobalDefaultFilter(Tracer tracer) {
         super(Config.class);
+        this.tracer = tracer;
     }
 
     @Override

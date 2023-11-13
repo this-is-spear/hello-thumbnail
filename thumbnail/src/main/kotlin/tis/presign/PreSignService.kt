@@ -1,11 +1,10 @@
 package tis.presign
 
-import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
-import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.sdk.kotlin.services.s3.presigners.presignPutObject
 import org.springframework.stereotype.Service
 import tis.S3Config
+import tis.s3Client
 import kotlin.time.Duration.Companion.hours
 
 @Service
@@ -18,17 +17,8 @@ class PreSignService(
             key = filename
         }
 
-        val environmentCredentialsProvider = StaticCredentialsProvider {
-            accessKeyId = s3Config.accessKeyId
-            secretAccessKey = s3Config.secretAccessKey
-        }
-
-        val preSignedRequest = S3Client
-            .fromEnvironment {
-                region = s3Config.region
-                credentialsProvider = environmentCredentialsProvider
-            }
-            .presignPutObject(unsignedRequest, 24.hours)
+        val preSignedRequest = s3Client(s3Config)
+            .presignPutObject(unsignedRequest, 1.hours)
 
         return preSignedRequest.url.toString()
     }

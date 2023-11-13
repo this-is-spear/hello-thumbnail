@@ -1,4 +1,4 @@
-package tis.`pre-sign`
+package tis.presign
 
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client

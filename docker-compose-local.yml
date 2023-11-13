@@ -21,20 +21,7 @@ services:
       MONGO_BASE_PASSWORD: tis
       ZIPKIN_URI: http://zipkin
     depends_on:
-      - mongodb
       - pinpoint-agent
-    networks:
-      - thumbnail_net
-
-  mongodb:
-    image: mongo
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: tis
-      MONGO_INITDB_ROOT_PASSWORD: tis
-      MONGO_INITDB_DATABASE: thumbnail-local
     networks:
       - thumbnail_net
 

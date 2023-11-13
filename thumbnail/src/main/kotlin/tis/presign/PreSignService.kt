@@ -5,6 +5,7 @@ import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.sdk.kotlin.services.s3.presigners.presignPutObject
 import org.springframework.stereotype.Service
+import tis.S3Config
 import kotlin.time.Duration.Companion.hours
 
 @Service

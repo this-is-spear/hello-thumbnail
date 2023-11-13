@@ -1,4 +1,4 @@
-package tis.presign
+package tis
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

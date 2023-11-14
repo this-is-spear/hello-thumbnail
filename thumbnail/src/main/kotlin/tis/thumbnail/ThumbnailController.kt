@@ -20,18 +20,25 @@ class ThumbnailController(
             ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment")
                 .header("filename", it.filename)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE)
                 .body(it.file)
         }
     }
 
-    @GetMapping("/thumnails/resize")
+    @GetMapping(
+        value = ["/thumnails/resize"],
+        produces = [MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE]
+    )
     suspend fun getResizedImage(
         @RequestParam filename: String,
         @RequestParam height: Int,
         @RequestParam width: Int
-    ): ThumbnailResponse {
-        return thumbnailApplicationService.getImage(filename, height, width)
+    ): ResponseEntity<ByteArray> {
+        return thumbnailApplicationService.getImage(filename, height, width).let {
+            ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment")
+                .header("filename", it.filename)
+                .body(it.file)
+        }
     }
 
     @GetMapping("/thumnails/all")

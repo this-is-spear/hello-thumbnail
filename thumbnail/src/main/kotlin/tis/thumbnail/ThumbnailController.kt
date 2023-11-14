@@ -3,7 +3,6 @@ package tis.thumbnail;
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.util.MimeType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -15,7 +14,7 @@ class ThumbnailController(
     @GetMapping(
         value = ["/thumnails"],
         produces = [MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_GIF_VALUE]
-        )
+    )
     suspend fun getImage(@RequestParam filename: String): ResponseEntity<ByteArray> {
         return thumbnailApplicationService.getImage(filename).let {
             ResponseEntity.ok()

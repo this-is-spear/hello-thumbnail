@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.ir.backend.js.compile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 val bootJar: BootJar by tasks
@@ -35,6 +34,8 @@ dependencies {
             strictly("5.0.0-alpha.10")
         }
     }
+    // https://mvnrepository.com/artifact/net.coobird/thumbnailator
+    implementation("net.coobird:thumbnailator:0.4.20")
 
     implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
